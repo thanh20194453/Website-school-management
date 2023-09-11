@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title-->
+    <title>Teacher homepage</title>
+    <!-- CSS File-->
+  </head>
+  <body style="background-color: skyblue">
+    <CENTER><h2>Homepage</h2></CENTER>
+    <button onclick="window.location.href='/logout';" style="float: right;">Log out</button>
+    <!--Table-->
+    <table>
+      <tr>
+        <td>
+          <button type="button" onclick="window.location.href='/home';">Home</button>
+          <button type="button" onclick="window.location.href='/teacher/midterm';">Edit midterm score</button>
+          <button type="button" onclick="window.location.href='/teacher/final';">Edit final score</button>
+        </td>
+      </tr>
+      <!--Row-1-->
+      <tr>
+        <!--Column-1-->
+        <td>
+          <!--Nested Table-->
+          <table class="list" id="stdlist" style="background-color: #C2976D;">
+            <!--Table Head-->
+            <thead>
+              <!--Row-2-->
+              <tr>
+                <th>Class ID</th>
+                <th>Course Name</th>
+                <th>Course ID</th>
+                <th>Class day</th>
+                <th>Start time</th>
+                <th>End time</th>
+              </tr>
+            </thead>
+            <!--Table Body-->
+            <tbody>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </table>
+    
+    <link rel='stylesheet' type='text/css' href='/style.css'/>
+    <script>
+      function showAllClasses() {
+          fetch('/teacher/teaching')
+	      .then(res => res.json())
+	      .then(data => {
+                  let table = document.getElementById("stdlist").getElementsByTagName('tbody')[0];
+                  data.forEach(row => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row.class_id;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row.course_name;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row.course_id;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = row.class_day;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = row.start_time;
+                      cell = tableRow.insertCell(5);
+                      cell.innerHTML = row.end_time;
+	          });
+              });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          showAllClasses();
+      }, false);
+    </script>
+  </body>
+</html>

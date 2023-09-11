@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<head>
+  <title>Local website</title>
+  <meta charset="UTF-8">
+  <meta name="description" content="Simple local website.">
+</head>
+<body>
+  <form action="/auth" method="post">
+    <div class="container">
+      <input type="text" placeholder="Username" name="username" id="username" required>
+      <input type="password" placeholder="Password" name="password" id="password" required>
+      <button type="submit">Login</button>
+    </div>
+  </form>
+  <style>
+    body {
+        width: 400px;
+        padding-left: 40%;
+        padding-right: 40%;
+    }
+    
+    input[type="text"], input[type="password"] {
+        width: 100%;
+        padding: 12px 20px;
+        margin: 8px 0;
+        display: inline-block;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+    }
+    
+    button {
+        background-color: #04AA6D;
+        color: white;
+        padding: 14px 20px;
+        margin: 8px 0;
+        border: none;
+        cursor: pointer;
+        width: 100%;
+    }
+  </style>
+</body>

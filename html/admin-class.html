@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title-->
+    <title>Admin homepage</title>
+    <!-- CSS File-->
+  </head>
+  <body style="background-color: skyblue">
+    <CENTER><h2>Manage class</h2></CENTER>
+    <button onclick="window.location.href='/logout';" style="float: right;">Log out</button>
+    <!--Table-->
+    <table>
+      <tr>
+        <td>
+          <button onclick="window.location.href='/home';">Home</button>
+          <button onclick="window.location.href='/admin/account';">Manage account</button>
+          <button onclick="window.location.href='/admin/course';">Manage course</button>
+          <button onclick="window.location.href='/admin/course-requirement';">Manage course requirement</button>
+          <button onclick="window.location.href='/admin/class';">Manage class</button>
+          <button onclick="window.location.href='/admin/registration';">Manage registration</button>
+          <button onclick="window.location.href='/admin/semester-class';">Manage semester class</button>
+        </td>
+      </tr>
+      <tr>
+        <td>
+          <h4>Create new class/Search class</h4>
+          <input id="classID" placeholder="Class ID"></input>
+          <br>
+          <button onclick="createNewClass();">Create new class</button>
+          <button onclick="searchClass();">Search</button>
+          <br>
+          <label id="classStatus"></label>
+        </td>
+      </tr>
+      <tr>
+        <table id="classTable">
+          <tr>
+            <td>
+              <h4>Class info</h4>
+              <table>
+                <thead>
+                  <tr>
+                    <th>Class name</th>
+                    <th>Class type</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th><input id="className" placeholder="Class name"></input></th>
+                    <th>
+                      <select id="classType">
+                        <option value="CREDIT">credit</option>
+                        <option value="NORMAL">normal</option>
+                      </select>
+                    </th>
+                  </tr>
+                </tbody>
+              </table>
+              <button onclick="updateClassInfo();">Update class info</button>
+              <br>
+              <label id="infoStatus"></label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <h4>Curriculum</h4>
+              <table id="curriculum">
+                <thead>
+                  <tr>
+                    <th>Course name</th>
+                    <th>Course ID</th>
+                    <th>Credit</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <button onclick="addCourse();">Add course</button>
+              <input id="courseID" placeholder="Course ID"></input>
+              <br>
+              <button onclick="updateCurriculum();">Update curriculum</button>
+              <br>
+              <label id="currStatus"></label>
+            </td>
+          </tr>
+          <tr>
+            <td>
+              <h4>Student list</h4>
+              <table id="studentList">
+                <thead>
+                  <tr>
+                    <th>First name</th>
+                    <th>Last name</th>
+                    <th>ID</th>
+                    <th>Account</th>
+                    <th>Gender</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                </tbody>
+              </table>
+              <button onclick="addStudent();">Add student</button>
+              <input id="studentID" placeholder="Student ID"></input>
+              <br>
+              <button onclick="updateStudentList();">Update student list</button>
+              <br>
+              <label id="stdStatus"></label>
+            </td>
+          </tr>
+        </table>
+      </tr>
+    </table>
+    
+    <link rel='stylesheet' type='text/css' href='/style.css'/>
+    <script>
+      function onDelete(td) {
+          let row = td.parentElement.parentElement;
+          row.parentNode.removeChild(row);
+      }
+      
+      function getCurriculum(class_id) {
+          fetch('/admin/get/class-curriculum', {
+              method: 'GET',
+              headers: {
+                  'class_id': class_id
+              },
+          })
+              .then(res => res.json())
+              .then(data => {
+                  let table = document.getElementById("curriculum").getElementsByTagName('tbody')[0];
+                  while (table.rows.length > 0) {
+                      table.deleteRow(table.rows.length - 1);
+                  }
+                  data.forEach(row => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row.course_name;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row.course_id;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row.credit;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+                  });
+              });
+      }
+
+      function getStudentList(class_id) {
+          fetch('/admin/get/class-student', {
+              method: 'GET',
+              headers: {
+                  'class_id': class_id
+              },
+          })
+              .then(res => res.json())
+              .then(data => {
+                  let table = document.getElementById("studentList").getElementsByTagName('tbody')[0];
+                  while (table.rows.length > 0) {
+                      table.deleteRow(table.rows.length - 1);
+                  }
+                  data.forEach(row => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row.first_name;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row.last_name;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row.id;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = row.username;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = row.gender;
+                      cell = tableRow.insertCell(5);
+                      cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+                  });
+              });
+      }
+
+      function addCourse() {
+          document.getElementById("currStatus").innerHTML = '';
+          let courseID = document.getElementById("courseID").value;
+          fetch('/admin/get/course', {
+              method: 'GET',
+              headers: {
+                  'course_id': courseID
+              },
+          })
+              .then(res => res.json())
+              .then(data => {
+                  let table = document.getElementById("curriculum").getElementsByTagName('tbody')[0];
+                  if (data.length < 1) {
+                      document.getElementById("currStatus").innerHTML = 'Course not found';
+                  }
+                  data.forEach(row => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row.course_name;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row.course_id;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row.credit;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+                  });
+              });
+      }
+
+      function addStudent() {
+          document.getElementById("stdStatus").innerHTML = '';
+          let studentID = document.getElementById("studentID").value;
+          fetch('/admin/get/student', {
+              method: 'GET',
+              headers: {
+                  'student_id': studentID
+              },
+          })
+              .then(res => res.json())
+              .then(data => {
+                  let table = document.getElementById("studentList").getElementsByTagName('tbody')[0];
+                  if (data.length < 1) {
+                      document.getElementById("stdStatus").innerHTML = 'Student not found';
+                  }
+                  data.forEach(row => {
+                      let tableRow = table.insertRow(table.length);
+                      let cell = tableRow.insertCell(0);
+                      cell.innerHTML = row.first_name;
+                      cell = tableRow.insertCell(1);
+                      cell.innerHTML = row.last_name;
+                      cell = tableRow.insertCell(2);
+                      cell.innerHTML = row.id;
+                      cell = tableRow.insertCell(3);
+                      cell.innerHTML = row.username;
+                      cell = tableRow.insertCell(4);
+                      cell.innerHTML = row.gender;
+                      cell = tableRow.insertCell(5);
+                      cell.innerHTML = '<a onClick="onDelete(this)">Delete</a>';
+                  });
+              });
+      }
+
+      function updateCurriculum() {
+          let class_id = document.getElementById("classID").value;
+          let table = document.getElementById("curriculum").getElementsByTagName('tbody')[0];
+          let data = [];
+          for (let i = 0, row; row = table.rows[i]; i += 1) {
+              data.push(row.cells[1].innerHTML);
+          }
+          fetch('/admin/update/class-curriculum', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'class_id': class_id
+              },
+              body: JSON.stringify(data)
+          })
+	      .then(res => res.text())
+	      .then(data => {
+                  document.getElementById("currStatus").innerHTML = data;
+              });
+      }
+
+      function updateStudentList() {
+          let class_id = document.getElementById("classID").value;
+          let table = document.getElementById("studentList").getElementsByTagName('tbody')[0];
+          let data = [];
+          for (let i = 0, row; row = table.rows[i]; i += 1) {
+              data.push(row.cells[2].innerHTML);
+          }
+          fetch('/admin/update/student-list', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json',
+                  'class_id': class_id
+              },
+              body: JSON.stringify(data)
+          })
+	      .then(res => res.text())
+	      .then(data => {
+                  document.getElementById("stdStatus").innerHTML = data;
+              });
+      }
+
+      function updateClassInfo() {
+          let class_id = document.getElementById("classID").value;
+          let className = document.getElementById("className").value;
+          let classType = document.getElementById("classType").options;
+          classType = classType[classType.selectedIndex].value;
+          let data = [className, classType, class_id];
+          fetch('/admin/update/class-info', {
+              method: 'POST',
+              headers: {
+                  'Content-Type': 'application/json'
+              },
+              body: JSON.stringify(data)
+          })
+              .then(res => res.text())
+              .then(data => {
+                  document.getElementById("infoStatus").innerHTML = data;
+              });
+      }
+
+      function createNewClass() {
+          document.getElementById("classTable").style.display = 'none';
+          fetch('/admin/get/class-list')
+              .then(res => res.json())
+              .then(data => {
+                  let s = new Set();
+                  data.forEach(row => {
+                      s.add(row.class_id);
+                  });
+                  let class_id = document.getElementById("classID").value;
+                  if (s.has(class_id) || class_id === '') {
+                      document.getElementById("classStatus").innerHTML = `Class ${class_id} has already existed`;
+                  } else {
+                      document.getElementById("className").value = '';
+                      document.getElementById("classType").selectedIndex = 0;
+                      let table = document.getElementById("curriculum").getElementsByTagName('tbody')[0];
+                      while (table.rows.length > 0) {
+                          table.deleteRow(table.rows.length - 1);
+                      }
+                      table = document.getElementById("studentList").getElementsByTagName('tbody')[0];
+                      while (table.rows.length > 0) {
+                          table.deleteRow(table.rows.length - 1);
+                      }
+                      data = [[class_id]];
+                      fetch('/admin/add/class', {
+                          method: 'POST',
+                          headers: {
+                              'Content-Type': 'application/json'
+                          },
+                          body: JSON.stringify(data)
+                      })
+                          .then(res => res.text())
+                          .then(data => {
+                              document.getElementById("classStatus").innerHTML = data;
+                              document.getElementById("classTable").style.display = 'block';
+                          });
+                  }
+              });
+      }
+
+      function searchClass() {
+          document.getElementById("classTable").style.display = 'none';
+          fetch('/admin/get/class-list')
+              .then(res => res.json())
+              .then(data => {
+                  let class_id = document.getElementById("classID").value;
+                  let classRow = null;
+                  data.forEach(row => {
+                      if (row.class_id === class_id) {
+                          classRow = row;
+                      }
+                  });
+                  if (classRow) {
+                      document.getElementById("classStatus").innerHTML = '';
+                      getCurriculum(class_id);
+                      getStudentList(class_id);
+                      document.getElementById("className").value = classRow.class_name;
+                      document.getElementById("classType").value = classRow.class_type;
+                      document.getElementById("classTable").style.display = 'block';
+                  } else {
+                      document.getElementById("classStatus").innerHTML = 'Class not found';
+                  }
+              });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          document.getElementById("classTable").style.display = 'none';
+      }, false);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!--Title-->
+    <title>Student homepage</title>
+    <!-- CSS File-->
+  </head>
+  <body style="background-color: skyblue">
+    <CENTER><h2>Homepage</h2></CENTER>
+    <button onclick="window.location.href='/logout';" style="float: right;">Log out</button>
+    <!--Table-->
+    <table>
+      <!--Row-1-->
+      <tr>
+        <td>
+          <button onclick="window.location.href='/home';">Home</button>
+          <button onclick="window.location.href='/student/registered';">Registered class</button>
+          <button onclick="window.location.href='/student/register/course';">Register course</button>
+          <button onclick="window.location.href='/student/register/class';">Register class</button>
+          <!--Nested Table-->
+          <table class="list" id="stdlist" style="background-color: #C2976D;">
+            <!--Table Head-->
+            <thead>
+              <!--Row-2-->
+              <tr>
+                <th>Course Name</th>
+                <th>Course ID</th>
+                <th>Credit</th>
+                <th>Grade</th>
+              </tr>
+            </thead>
+            <!--Table Body-->
+            <tbody>
+            </tbody>
+          </table>
+          <button onclick="checkGraduation();">Check graduate condition</button>
+          <br>
+          <label id="graduationStatus"></label>
+        </td>
+      </tr>
+    </table>
+
+    <link rel='stylesheet' type='text/css' href='/style.css'/>
+    <script>
+      function showCurriculum() {
+          fetch('/student/enrolment')
+              .then(res1 => res1.json())
+              .then(data1 => {
+                  let gradeMap = new Map();
+                  data1.forEach(row => {
+                      if (row.midterm_score && row.final_score) {
+                          let grade = row.midterm_score * row.progress_weight + (1 - row.progress_weight) * row.final_score;
+                          gradeMap.set(row.course_id, grade);
+                      }
+                  });
+                  fetch('/student/curriculum')
+	              .then(res2 => res2.json())
+	              .then(data2 => {
+                          let table = document.getElementById("stdlist").getElementsByTagName('tbody')[0];
+	                  while (table.rows.length > 1) {
+		              table.deleteRow(table.rows.length - 1);
+	                  }
+	                  data2.forEach(row => {
+                              let tableRow = table.insertRow(table.length);
+                              let cell = tableRow.insertCell(0);
+                              cell.innerHTML = row.course_name;
+                              cell = tableRow.insertCell(1);
+                              cell.innerHTML = row.course_id;
+                              cell = tableRow.insertCell(2);
+                              cell.innerHTML = row.credit;
+                              cell = tableRow.insertCell(3);
+                              if (gradeMap.has(row.course_id)) {
+                                  cell.innerHTML = gradeMap.get(row.course_id);
+                              }
+	                  });
+	              });
+              });
+      }
+
+      document.addEventListener('DOMContentLoaded', function() {
+          showCurriculum();
+      }, false);
+
+      function checkGraduation() {
+          let table = document.getElementById("stdlist").getElementsByTagName('tbody')[0];
+          let status = '';
+          for (let i = 0, row; row = table.rows[i]; i += 1) {
+              if (row.cells[3].innerHTML == '') {
+                  status += 'Course "' + row.cells[0].innerHTML + '" is required for graduation. ';
+              }
+          }
+          document.getElementById("graduationStatus").innerHTML = status;
+      }
+    </script>
+  </body>
+</html>
